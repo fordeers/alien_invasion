@@ -32,7 +32,7 @@ class Ship:
           # Update the ship's x value, not the rect.
           if self.rect.right > self.screen_rect.right:
                 self.rect.right = self.screen_rect.right
-          if self.rect.left < self.screen_rect.left:
+          elif self.rect.left < self.screen_rect.left:
                 self.rect.left = self.screen_rect.left
 
           self.x = float(self.rect.x)     
@@ -40,7 +40,7 @@ class Ship:
           # Update the ship's y value, not the rect.
           if self.rect.top < self.screen_rect.top:
                 self.rect.top = self.screen_rect.top
-          if self.rect.bottom > self.screen_rect.bottom:
+          elif self.rect.bottom > self.screen_rect.bottom:
                 self.rect.bottom = self.screen_rect.bottom
 
           self.y = float(self.rect.y)
