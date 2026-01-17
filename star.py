@@ -60,8 +60,5 @@ class Star(Sprite):
             self.rect.x = randint(0, self.settings.screen_width)
             self.rect.y = randint(0, self.settings.screen_height)
 
-            # self.twinkle_speed = randint(20, 60)
-
-
         self.image.set_alpha(self.brightness)
         
