@@ -18,9 +18,9 @@ class SpaceDrop(Sprite):
 
         self.y = float(self.rect.y)
 
-    def update(self):
+    def update(self, dt):
         """Move the spacedrop down the screen"""
-        self.y += 9.0
+        self.y += 1 * dt
 
         self.rect.y = self.y
 

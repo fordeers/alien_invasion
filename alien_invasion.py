@@ -19,6 +19,7 @@ class AlienInvasion:
         pygame.init()
 
         self.clock = pygame.time.Clock()
+        self.dt = 0
         self.settings = Settings()
 
         self.screen = pygame.display.set_mode((self.settings.screen_width, self.settings.screen_height))
@@ -33,23 +34,26 @@ class AlienInvasion:
         self.stars = pygame.sprite.Group()
         self.spacedrops = pygame.sprite.Group()
 
-        self._create_fleet()
+        # self._create_fleet()
         self._create_stars()
         #self._create_drops()
+
+        self.warping = False
+
 
     def run_game(self):
         """Start the main loop for the game."""
         while True:
-            self._check_events()
-            self.ship.update()
-            self._update_bullets()
-            self._update_aliens()
-            self.stars.update()
-            # self.spacedrops.update()
-            self._update_space_drops()
-            self._update_screen()
-            self.clock.tick(60)
+            self.dt = self.clock.tick(60) / 1000
             print(self.clock.get_fps())
+            self._check_events()
+            self.ship.update(self.dt)
+            self._update_bullets(self.dt)
+            self._update_aliens(self.dt)
+            self.stars.update(self.dt)
+            self._update_space_drops(self.dt)
+            # self._flags_for_spacewarp(self.dt)
+            self._update_screen()
 
     def _update_screen(self):
         """Updates assets on the screen, and flips to the new screen """
@@ -77,20 +81,23 @@ class AlienInvasion:
                 if event.type == pygame.QUIT:
                     self._quit_game()
 
-                elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN:
                     self._check_keydown_events(event)
 
-                elif event.type == pygame.KEYUP:
+                if event.type == pygame.KEYUP:
                     self._check_keyup_events(event)
 
     def _check_keydown_events(self, event):
         """Respond to key presses"""
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right = True
-        elif event.key == pygame.K_LEFT:
+            # self.warping = True
+        if event.key == pygame.K_LEFT:
             self.ship.moving_left = True
-        elif event.key == pygame.K_UP:
+            # self.warping = True
+        if event.key == pygame.K_UP:
             self.ship.moving_up = True
+            # self.warping = True
         elif event.key == pygame.K_DOWN:
             self.ship.moving_down = True
         elif event.key == pygame.K_SPACE:
@@ -106,10 +113,13 @@ class AlienInvasion:
         """Respond to key releases."""
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right = False
-        elif event.key == pygame.K_LEFT:
+            # self.warping = False
+        if event.key == pygame.K_LEFT:
             self.ship.moving_left = False
-        elif event.key == pygame.K_UP:
+            # self.warping = False
+        if event.key == pygame.K_UP:
             self.ship.moving_up = False
+            # self.warping = False
         elif event.key == pygame.K_DOWN:
             self.ship.moving_down = False
     
@@ -119,55 +129,65 @@ class AlienInvasion:
             for drop in self.spacedrops.sprites():
                 drop.draw_space_drops()
 
-    def _update_space_drops(self):
+    def _flags_for_spacewarp(self, dt):
+        if self.warping:
+            self._update_space_drops(dt)
+        else:
+            for drops in self.spacedrops.sprites():
+                self.spacedrops.remove(drops)
+    
+    def _update_space_drops(self, dt):
         """Updates Spacedrops"""
-        self._delete_space_drops()
+        self._delete_space_drops_bottom()
         self._create_drops()
-        self.spacedrops.update()
+        self.spacedrops.update(dt)
 
-    def _delete_space_drops(self):
+    def _delete_space_drops_bottom(self):
         """Deletes spacedrops"""
         for drops in self.spacedrops.sprites():
-            print(drops)
+            #print(drops)
 
             if drops.rect.bottom > self.screen_get_rect.bottom:
                 self.spacedrops.remove(drops) 
 
     def _create_drops(self):
         """Create spacedrop"""
-        if len(self.spacedrops) < 5:    
+        if len(self.spacedrops) <= 1:    
             for _ in range(1):    
                 new_drops = SpaceDrop(self)
                 self.spacedrops.add(new_drops)
 
     def _create_stars(self):
         """Twinkling stars are created here"""
-        for _ in range(5):
+        for _ in range(10):
             new_star = Star(self)
             self.stars.add(new_star)
 
-    def _update_aliens(self):
+    def _update_aliens(self, dt):
         """Update the positions of all aliens in the fleet."""
         self._delete_aliens_screen()
-        self._check_fleet_edges()
-        self.aliens.update()       
+        self._create_fleet(dt)
+        self._check_fleet_edges(dt)
+        self.aliens.update(dt)
+        # print(len(self.aliens))
 
-    def _create_fleet(self):
+    def _create_fleet(self, dt):
         """Create the fleet of aliens."""
-        # Create an alien and keep adding aliens until there's no room left.
-        # Spacing between aliens is one alien width and one alien height.
-        alien = Aliens(self)
-        alien_width, alien_height = alien.rect.size
+        if len(self.aliens) == 0:
+            # Create an alien and keep adding aliens until there's no room left.
+            # Spacing between aliens is one alien width and one alien height.
+            alien = Aliens(self)
+            alien_width, alien_height = alien.rect.size
 
-        current_x, current_y = alien_width, alien_height
-        while current_y < (self.settings.screen_height - 20 * alien_height):
-            while current_x < (self.settings.screen_width - 2 * alien_width):
-                self._create_alien(current_x, current_y)
-                current_x += 2 * alien_width
-            
-            # Finished a row: reset x value, and increment y value.
-            current_x = alien_width
-            current_y += (2 * alien_height)
+            current_x, current_y = alien_width, alien_height
+            while current_y < (self.settings.screen_height - 20 * alien_height):
+                while current_x < (self.settings.screen_width - 3 * alien_width):
+                    self._create_alien(current_x, current_y)
+                    current_x += 2 * alien_width
+                
+                # Finished a row: reset x value, and increment y value.
+                current_x = alien_width
+                current_y += 2 * alien_height
 
     def _create_alien(self, current_x, current_y):
         """Create an alien and place it in a row"""
@@ -185,17 +205,19 @@ class AlienInvasion:
             if aliens.rect.bottom > self.screen_get_rect.bottom:
                 self.aliens.remove(aliens)
 
-    def _check_fleet_edges(self):
+    def _check_fleet_edges(self, dt):
         """Respond appropriately if any aliens have reached an edge."""
         for alien in self.aliens.sprites():
             if alien._check_edges():   
-                self._change_fleet_direction()
+                self._change_fleet_direction(dt)
                 break
     
-    def _change_fleet_direction(self):
+    def _change_fleet_direction(self, dt):
         """Drop the entire fleet and change the fleet's direction."""
-        for alien in self.aliens.sprites():
-            alien.rect.y += self.settings.fleet_drop_speed
+        for alien in self.aliens.sprites(): ####### WORK ON THIS / FIX THIS /FIGURE IT OUT
+            
+            alien.rect.y += self.settings.fleet_drop_speed * dt
+        
         self.settings.fleet_direction *= -1
         
     def _fire_bullet(self):
@@ -204,9 +226,9 @@ class AlienInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
-    def _update_bullets(self):
+    def _update_bullets(self, dt):
         """Updates bullets"""
-        self.bullets.update()
+        self.bullets.update(dt)
         
         for bullet in self.bullets.copy():
                 if bullet.rect.bottom <= 0:

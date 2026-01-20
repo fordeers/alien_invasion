@@ -11,21 +11,21 @@ class Settings:
         self.bg_colour = (10, 10, 20)
 
         # Ship settings
-        self.ship_speed = 10
+        self.ship_speed = 270
 
         # Alien settings
-        self.alien_speed = 2.0
-        self.fleet_drop_speed = 30
+        self.alien_speed = 120.0
+        self.fleet_drop_speed = 2000
         # Fleet direction of 1 represents right; -1 represents left.
         self.fleet_direction = 1
 
 
         # Bullet
-        self.bullet_speed = 4.0
+        self.bullet_speed = 220.0
         self.bullet_width = 3
         self.bullet_height = 15
         self.bullet_colour = (255, 255, 0)
-        self.bullets_allowed = 3
+        self.bullets_allowed = 5
 
     def _exit_fullscreen(self):
         """Exit fullscreen mode"""

@@ -26,39 +26,23 @@ class Ship:
             self.moving_up = False
             self.moving_down = False
 
-    def update(self):
+    def update(self, dt):
           """Updates the ship's position based on movement flags"""
           
           # Update the ship's x value, not the rect.
-          if self.rect.right > self.screen_rect.right:
-                self.rect.right = self.screen_rect.right
-          elif self.rect.left < self.screen_rect.left:
-                self.rect.left = self.screen_rect.left
-
-          self.x = float(self.rect.x)     
-          
-          # Update the ship's y value, not the rect.
-          if self.rect.top < self.screen_rect.top:
-                self.rect.top = self.screen_rect.top
-          elif self.rect.bottom > self.screen_rect.bottom:
-                self.rect.bottom = self.screen_rect.bottom
-
-          self.y = float(self.rect.y)
-
-          if self.moving_right:
-                self.x += self.settings.ship_speed
-          if self.moving_left:
-                self.x -= self.settings.ship_speed
+          if self.moving_right and self.rect.right < self.screen_rect.right:
+                self.x += self.settings.ship_speed * dt
+          if self.moving_left and self.rect.left > self.screen_rect.left:
+                self.x -= self.settings.ship_speed * dt
           
           # Update rect object from self.x
-          self.rect.x = self.x      
 
-          if self.moving_up:
-                self.y -= self.settings.ship_speed      
-          if self.moving_down:
-                self.y += self.settings.ship_speed
-          
-          # Update rect object from self.y
+          if self.moving_up and self.rect.top > self.screen_rect.top:
+                self.y -= self.settings.ship_speed * dt     
+          if self.moving_down and self.rect.bottom < self.screen_rect.bottom:
+                self.y += self.settings.ship_speed * dt
+              
+          self.rect.x = self.x      
           self.rect.y = self.y   
           
           
