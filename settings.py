@@ -16,16 +16,21 @@ class Settings:
         # Alien settings
         self.alien_speed = 120.0
         self.fleet_drop_speed = 2000
+
         # Fleet direction of 1 represents right; -1 represents left.
         self.fleet_direction = 1
-
 
         # Bullet
         self.bullet_speed = 220.0
         self.bullet_width = 3
         self.bullet_height = 15
+        self.side_bullet_width = 15
+        self.side_bullet_height = 3
         self.bullet_colour = (255, 255, 0)
-        self.bullets_allowed = 5
+        self.bullets_allowed = 3
+
+        # Delta Time FPS
+        self.fps = 60
 
     def _exit_fullscreen(self):
         """Exit fullscreen mode"""

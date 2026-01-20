@@ -4,7 +4,7 @@ import sys
 import pygame
 
 from settings import Settings
-from bullet import Bullet
+from bullet import *
 from alien import Aliens
 from ship import Ship
 from star import Star
@@ -30,6 +30,8 @@ class AlienInvasion:
 
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
+        self.rbullets = pygame.sprite.Group()
+        self.lbullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
         self.spacedrops = pygame.sprite.Group()
@@ -40,11 +42,10 @@ class AlienInvasion:
 
         self.warping = False
 
-
     def run_game(self):
         """Start the main loop for the game."""
         while True:
-            self.dt = self.clock.tick(60) / 1000
+            self.dt = self.clock.tick(self.settings.fps) / 1000
             print(self.clock.get_fps())
             self._check_events()
             self.ship.update(self.dt)
@@ -60,8 +61,9 @@ class AlienInvasion:
         # Redraw colours & assets on the screen during each pass through the loop.
         self.screen.fill(self.settings.bg_colour)
         self.stars.draw(self.screen)
-        for bullet in self.bullets.sprites():
-            bullet.draw_bullet()
+        # for bullet in self.bullets.sprites():
+        #     bullet.draw_bullet()
+        self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
         self.ship.blitme()
@@ -122,14 +124,17 @@ class AlienInvasion:
             # self.warping = False
         elif event.key == pygame.K_DOWN:
             self.ship.moving_down = False
-    
+
+    ############################## SpaceDrops ##############################
+
     def _space_drops_draw(self):
-        """Draw Spacedrops"""
+        """Draws Spacedrops"""
         if self.spacedrops:
             for drop in self.spacedrops.sprites():
                 drop.draw_space_drops()
 
-    def _flags_for_spacewarp(self, dt):
+    def _keybased_spacedrops(self, dt):
+        """For when you want to bind spacedrops warping effect to keypresses."""
         if self.warping:
             self._update_space_drops(dt)
         else:
@@ -157,11 +162,15 @@ class AlienInvasion:
                 new_drops = SpaceDrop(self)
                 self.spacedrops.add(new_drops)
 
+    ############################## Stars ##############################
+    
     def _create_stars(self):
         """Twinkling stars are created here"""
         for _ in range(10):
             new_star = Star(self)
             self.stars.add(new_star)
+
+    ############################## Aliens ##############################
 
     def _update_aliens(self, dt):
         """Update the positions of all aliens in the fleet."""
@@ -214,28 +223,78 @@ class AlienInvasion:
     
     def _change_fleet_direction(self, dt):
         """Drop the entire fleet and change the fleet's direction."""
+        
         for alien in self.aliens.sprites(): ####### WORK ON THIS / FIX THIS /FIGURE IT OUT
             
             alien.rect.y += self.settings.fleet_drop_speed * dt
         
         self.settings.fleet_direction *= -1
         
+        # for alien in self.aliens.sprites(): ####### Frame based possible solution to the alien drop down bug glitch
+            
+        #     alien.rect.y += self.settings.fleet_drop_speed * dt
+
+        #     if self.settings.fleet_direction == 1:
+        #         alien.rect.right = self.screen_get_rect.right - 1
+        #     else:
+        #         alien.rect.left = 1
+        
+        # self.settings.fleet_direction *= -1
+        
+    ############################## Bullets ##############################
+
+    def _draw_bullets(self):
+        """Draw the bullets"""
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
+        # for rbullet in self.rbullets.sprites():
+        #     rbullet.draw_bullet()
+        # for lbullet in self.lbullets.sprites():
+        #     lbullet.draw_bullet()
+            
+    
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
         if len(self.bullets) < self.settings.bullets_allowed:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
+        
+        if len(self.rbullets) < self.settings.bullets_allowed:
+            rnew_bullet = RBullet(self)
+            self.rbullets.add(rnew_bullet)
+        
+        if len(self.lbullets) < self.settings.bullets_allowed:
+            lnew_bullet = LBullet(self)
+            self.lbullets.add(lnew_bullet)
 
     def _update_bullets(self, dt):
         """Updates bullets"""
         self.bullets.update(dt)
-        
+        self.rbullets.update(dt)
+        self.lbullets.update(dt)
+        self._bullet_boundary_delete()
+        self._bullet_group_collision_delete()
+
+    def _bullet_boundary_delete(self):
+        """Delete bullets when reaching screen boundary"""
         for bullet in self.bullets.copy():
                 if bullet.rect.bottom <= 0:
                     self.bullets.remove(bullet)
-        
+        for rbullet in self.rbullets.copy():
+                if rbullet.rect.right >= self.screen_get_rect.right:
+                    self.rbullets.remove(rbullet)
+        for lbullet in self.lbullets.copy():
+                if lbullet.rect.left <= 0:
+                    self.lbullets.remove(lbullet)
+    
+    def _bullet_group_collision_delete(self):
+        """Handles deletition in collision with other sprite groups"""
         pygame.sprite.groupcollide(self.aliens, self.bullets, True, True) 
+        pygame.sprite.groupcollide(self.aliens, self.rbullets, True, True) 
+        pygame.sprite.groupcollide(self.aliens, self.lbullets, True, True) 
 
+
+# Main game loop's instance and calling
 if __name__ == '__main__':
     # Make a game instance, and run the game.
     ai = AlienInvasion()
