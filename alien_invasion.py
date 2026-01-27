@@ -1,14 +1,16 @@
 from random import randint
 import sys
+from time import sleep
 
 import pygame
 
 from settings import Settings
 from bullet import *
-from alien import Aliens
+from alien import Alien
 from ship import Ship
 from star import Star
 from spacedrop import SpaceDrop
+from game_stats import GameStats
 
 
 class AlienInvasion:
@@ -28,6 +30,7 @@ class AlienInvasion:
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("AlienInvasion")
 
+        self.stats = GameStats(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.rbullets = pygame.sprite.Group()
@@ -41,19 +44,22 @@ class AlienInvasion:
         #self._create_drops()
 
         self.warping = False
+        self.side_bullets = False
 
     def run_game(self):
         """Start the main loop for the game."""
         while True:
             self.dt = self.clock.tick(self.settings.fps) / 1000
-            print(self.clock.get_fps())
+            if self.dt > 0.1: 
+                self.dt = 1/60.0
+            # print(self.clock.get_fps())
             self._check_events()
             self.ship.update(self.dt)
             self._update_bullets(self.dt)
             self._update_aliens(self.dt)
             self.stars.update(self.dt)
             self._update_space_drops(self.dt)
-            # self._flags_for_spacewarp(self.dt)
+            # _keybased_spacedrops()
             self._update_screen()
 
     def _update_screen(self):
@@ -61,8 +67,6 @@ class AlienInvasion:
         # Redraw colours & assets on the screen during each pass through the loop.
         self.screen.fill(self.settings.bg_colour)
         self.stars.draw(self.screen)
-        # for bullet in self.bullets.sprites():
-        #     bullet.draw_bullet()
         self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
@@ -94,10 +98,10 @@ class AlienInvasion:
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right = True
             # self.warping = True
-        if event.key == pygame.K_LEFT:
+        elif event.key == pygame.K_LEFT:
             self.ship.moving_left = True
             # self.warping = True
-        if event.key == pygame.K_UP:
+        elif event.key == pygame.K_UP:
             self.ship.moving_up = True
             # self.warping = True
         elif event.key == pygame.K_DOWN:
@@ -106,6 +110,11 @@ class AlienInvasion:
             self._fire_bullet()
         elif event.key == pygame.K_q:
             self._quit_game()
+        elif event.key == pygame.K_d:
+            if not self.side_bullets:
+                self.side_bullets = True
+            elif self.side_bullets:
+                self.side_bullets = False
         elif event.key == pygame.K_f:
             self.settings._fullscreen_mode()
         elif event.key == pygame.K_ESCAPE:
@@ -116,10 +125,10 @@ class AlienInvasion:
         if event.key == pygame.K_RIGHT:
             self.ship.moving_right = False
             # self.warping = False
-        if event.key == pygame.K_LEFT:
+        elif event.key == pygame.K_LEFT:
             self.ship.moving_left = False
             # self.warping = False
-        if event.key == pygame.K_UP:
+        elif event.key == pygame.K_UP:
             self.ship.moving_up = False
             # self.warping = False
         elif event.key == pygame.K_DOWN:
@@ -177,6 +186,7 @@ class AlienInvasion:
         self._delete_aliens_screen()
         self._create_fleet(dt)
         self._check_fleet_edges(dt)
+        self._ship_to_alien_collision()
         self.aliens.update(dt)
         # print(len(self.aliens))
 
@@ -185,7 +195,7 @@ class AlienInvasion:
         if len(self.aliens) == 0:
             # Create an alien and keep adding aliens until there's no room left.
             # Spacing between aliens is one alien width and one alien height.
-            alien = Aliens(self)
+            alien = Alien(self)
             alien_width, alien_height = alien.rect.size
 
             current_x, current_y = alien_width, alien_height
@@ -200,7 +210,7 @@ class AlienInvasion:
 
     def _create_alien(self, current_x, current_y):
         """Create an alien and place it in a row"""
-        new_alien = Aliens(self)
+        new_alien = Alien(self)
         new_alien.x = current_x
         new_alien.rect.x = current_x
         new_alien.rect.y = current_y
@@ -241,31 +251,61 @@ class AlienInvasion:
         
         # self.settings.fleet_direction *= -1
         
+    def _ship_to_alien_collision(self):
+        """Detects ship to alien collision"""
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            print('Ship hit!')
+            self._ship_hit()
+
+    def _ship_hit(self):
+        """Respond to the ship being hit by an Alien"""
+        # Decrement ships_left
+        self.stats.ships_left -= 1
+        print(f"{self.stats.ships_left} lives left!")
+
+        if self.stats.ships_left == 0:
+            sleep(3)
+            print("Game over! Restarting...")
+            self.stats.ships_left = 3
+
+        # Get rid of any remaining bullets and aliens.
+        self.bullets.empty()
+        self.rbullets.empty()
+        self.lbullets.empty()
+        self.aliens.empty()
+
+        # Center the ship.
+        self.ship.ship_centred = True
+
+        # Pause.
+        sleep(0.5)
+
+
     ############################## Bullets ##############################
 
     def _draw_bullets(self):
         """Draw the bullets"""
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
-        # for rbullet in self.rbullets.sprites():
-        #     rbullet.draw_bullet()
-        # for lbullet in self.lbullets.sprites():
-        #     lbullet.draw_bullet()
-            
-    
+        for rbullet in self.rbullets.sprites():
+            rbullet.draw_bullet()
+        for lbullet in self.lbullets.sprites():
+            lbullet.draw_bullet()
+        
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
         if len(self.bullets) < self.settings.bullets_allowed:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
         
-        if len(self.rbullets) < self.settings.bullets_allowed:
-            rnew_bullet = RBullet(self)
-            self.rbullets.add(rnew_bullet)
-        
-        if len(self.lbullets) < self.settings.bullets_allowed:
-            lnew_bullet = LBullet(self)
-            self.lbullets.add(lnew_bullet)
+        if self.side_bullets:
+            if len(self.rbullets) < self.settings.bullets_allowed:
+                rnew_bullet = RBullet(self)
+                self.rbullets.add(rnew_bullet)
+            
+            if len(self.lbullets) < self.settings.bullets_allowed:
+                lnew_bullet = LBullet(self)
+                self.lbullets.add(lnew_bullet)
 
     def _update_bullets(self, dt):
         """Updates bullets"""
