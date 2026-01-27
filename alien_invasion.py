@@ -11,6 +11,7 @@ from ship import Ship
 from star import Star
 from spacedrop import SpaceDrop
 from game_stats import GameStats
+from button import Button
 
 
 class AlienInvasion:
@@ -35,9 +36,12 @@ class AlienInvasion:
         self.bullets = pygame.sprite.Group()
         self.rbullets = pygame.sprite.Group()
         self.lbullets = pygame.sprite.Group()
+        self.trbullets = pygame.sprite.Group()
+        self.tlbullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
         self.spacedrops = pygame.sprite.Group()
+        self.play_button = Button(self, "Play")
 
         # self._create_fleet()
         self._create_stars()
@@ -45,6 +49,10 @@ class AlienInvasion:
 
         self.warping = False
         self.side_bullets = False
+        self.double_bullets = False
+        
+        # Start Alien Invasion in an inactive state.
+        self.game_active = False
 
     def run_game(self):
         """Start the main loop for the game."""
@@ -54,12 +62,15 @@ class AlienInvasion:
                 self.dt = 1/60.0
             # print(self.clock.get_fps())
             self._check_events()
-            self.ship.update(self.dt)
-            self._update_bullets(self.dt)
-            self._update_aliens(self.dt)
-            self.stars.update(self.dt)
-            self._update_space_drops(self.dt)
-            # _keybased_spacedrops()
+            
+            if self.game_active:    
+                self.ship.update(self.dt)
+                self._update_bullets(self.dt)
+                self._update_aliens(self.dt)
+                self.stars.update(self.dt)
+                self._update_space_drops(self.dt)
+                # _keybased_spacedrops()
+            
             self._update_screen()
 
     def _update_screen(self):
@@ -72,6 +83,9 @@ class AlienInvasion:
         self._space_drops_draw()
         self.ship.blitme()
 
+        if not self.game_active:
+            self.play_button.draw_button()
+
         # Make a game instance, run the game.
         pygame.display.flip()
          
@@ -80,6 +94,8 @@ class AlienInvasion:
         pygame.quit()
         sys.exit()
 
+    ############################## Functionalities ##############################
+
     def _check_events(self):
         """Watch for keyboard and mouse events."""
         for event in pygame.event.get():
@@ -87,11 +103,15 @@ class AlienInvasion:
                 if event.type == pygame.QUIT:
                     self._quit_game()
 
-                if event.type == pygame.KEYDOWN:
+                elif event.type == pygame.KEYDOWN:
                     self._check_keydown_events(event)
 
-                if event.type == pygame.KEYUP:
+                elif event.type == pygame.KEYUP:
                     self._check_keyup_events(event)
+                
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    self._check_play_button(mouse_pos)
 
     def _check_keydown_events(self, event):
         """Respond to key presses"""
@@ -111,6 +131,11 @@ class AlienInvasion:
         elif event.key == pygame.K_q:
             self._quit_game()
         elif event.key == pygame.K_d:
+            if not self.double_bullets:
+                self.double_bullets = True
+            elif self.double_bullets:
+                self.double_bullets = False
+        elif event.key == pygame.K_s:
             if not self.side_bullets:
                 self.side_bullets = True
             elif self.side_bullets:
@@ -133,6 +158,40 @@ class AlienInvasion:
             # self.warping = False
         elif event.key == pygame.K_DOWN:
             self.ship.moving_down = False
+    
+    def _check_play_button(self, mouse_pos):
+        """Start a new game when the player clicks Play."""
+        if self.play_button.rect.collidepoint(mouse_pos) and not self.game_active:
+            self._reset_game()
+            self.stats.reset_stats()
+            self.game_active = True
+            pygame.mouse.set_visible(False)
+
+    ############################## Ship/Player ##############################
+
+    def _ship_hit(self):
+        """Respond to the ship being hit by an Alien"""
+        if self.stats.ships_left > 0:    
+            # Decrement ships_left
+            self.stats.ships_left -= 1
+            print(f"{self.stats.ships_left} lives left!")
+            self._reset_game()
+        
+        else:
+            self.game_active = False
+
+    def _reset_game(self):
+        """Drecrements player ship lives"""
+        # Get rid of any remaining bullets and aliens.
+        self._empty_all_bullets()
+        self.aliens.empty()
+
+        # Center the ship.
+        self.ship.ship_centred = True
+
+        # Pause.
+        sleep(0.5)
+
 
     ############################## SpaceDrops ##############################
 
@@ -193,6 +252,7 @@ class AlienInvasion:
     def _create_fleet(self, dt):
         """Create the fleet of aliens."""
         if len(self.aliens) == 0:
+            self._empty_all_bullets()
             # Create an alien and keep adding aliens until there's no room left.
             # Spacing between aliens is one alien width and one alien height.
             alien = Alien(self)
@@ -257,30 +317,6 @@ class AlienInvasion:
             print('Ship hit!')
             self._ship_hit()
 
-    def _ship_hit(self):
-        """Respond to the ship being hit by an Alien"""
-        # Decrement ships_left
-        self.stats.ships_left -= 1
-        print(f"{self.stats.ships_left} lives left!")
-
-        if self.stats.ships_left == 0:
-            sleep(3)
-            print("Game over! Restarting...")
-            self.stats.ships_left = 3
-
-        # Get rid of any remaining bullets and aliens.
-        self.bullets.empty()
-        self.rbullets.empty()
-        self.lbullets.empty()
-        self.aliens.empty()
-
-        # Center the ship.
-        self.ship.ship_centred = True
-
-        # Pause.
-        sleep(0.5)
-
-
     ############################## Bullets ##############################
 
     def _draw_bullets(self):
@@ -291,6 +327,10 @@ class AlienInvasion:
             rbullet.draw_bullet()
         for lbullet in self.lbullets.sprites():
             lbullet.draw_bullet()
+        for trbullet in self.trbullets.sprites():
+            trbullet.draw_bullet()
+        for tlbullet in self.tlbullets.sprites():
+            tlbullet.draw_bullet()
         
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
@@ -306,14 +346,33 @@ class AlienInvasion:
             if len(self.lbullets) < self.settings.bullets_allowed:
                 lnew_bullet = LBullet(self)
                 self.lbullets.add(lnew_bullet)
+        
+        if self.double_bullets:
+            if len(self.trbullets) < self.settings.bullets_allowed:
+                trnew_bullet = TRBullet(self)
+                self.trbullets.add(trnew_bullet)
+            
+            if len(self.tlbullets) < self.settings.bullets_allowed:
+                tlnew_bullet = TLBullet(self)
+                self.tlbullets.add(tlnew_bullet)
 
     def _update_bullets(self, dt):
         """Updates bullets"""
         self.bullets.update(dt)
         self.rbullets.update(dt)
         self.lbullets.update(dt)
+        self.trbullets.update(dt)
+        self.tlbullets.update(dt)
         self._bullet_boundary_delete()
         self._bullet_group_collision_delete()
+
+    def _empty_all_bullets(self):
+        """Empties all bullet sprites"""
+        self.bullets.empty()
+        self.rbullets.empty()
+        self.lbullets.empty()
+        self.trbullets.empty()
+        self.tlbullets.empty()
 
     def _bullet_boundary_delete(self):
         """Delete bullets when reaching screen boundary"""
@@ -326,12 +385,20 @@ class AlienInvasion:
         for lbullet in self.lbullets.copy():
                 if lbullet.rect.left <= 0:
                     self.lbullets.remove(lbullet)
+        for trbullet in self.trbullets.copy():
+                if trbullet.rect.bottom <= 0:
+                    self.trbullets.remove(trbullet)
+        for tlbullet in self.tlbullets.copy():
+                if tlbullet.rect.bottom <= 0:
+                    self.tlbullets.remove(tlbullet)
     
     def _bullet_group_collision_delete(self):
         """Handles deletition in collision with other sprite groups"""
         pygame.sprite.groupcollide(self.aliens, self.bullets, True, True) 
         pygame.sprite.groupcollide(self.aliens, self.rbullets, True, True) 
         pygame.sprite.groupcollide(self.aliens, self.lbullets, True, True) 
+        pygame.sprite.groupcollide(self.aliens, self.trbullets, True, True) 
+        pygame.sprite.groupcollide(self.aliens, self.tlbullets, True, True) 
 
 
 # Main game loop's instance and calling
