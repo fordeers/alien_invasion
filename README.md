@@ -6,7 +6,7 @@ Spacebar - For firing
 
 S - For side bullets 
 
-D - For upfront double bullets
+D - For upfront triple bullets
 
 Q - to quit game
 
