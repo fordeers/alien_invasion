@@ -1,6 +1,7 @@
 Work in progress..
 
 Arrow Keys - For ship movement 
+
 Spacebar - For firing
 
 S - For side bullets 
