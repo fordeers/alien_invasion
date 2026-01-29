@@ -12,6 +12,7 @@ class Settings:
 
         # Ship settings
         self.ship_speed = 270
+        self.ship_limit = 3
 
         # Alien settings
         self.alien_speed = 120.0
@@ -27,15 +28,35 @@ class Settings:
         self.side_bullet_width = 15
         self.side_bullet_height = 3
         self.bullet_colour = (255, 255, 0)
-        self.bullets_allowed = 3
+        self.bullets_allowed = 5
 
         # Delta Time FPS
-        self.fps = 60
+        self.fps = 75
+
+        # How quickly the game speeds up
+        self.speedup_scale = 1.3
+        
+        self.initialize_dynamic_settings()
+    
+    def initialize_dynamic_settings(self):
+        """Initialize settings that change throughout the game."""
+        self.ship_speed = 270
+        self.bullet_speed = 220
+        self.alien_speed = 120
+
+        # fleet_direction of 1 represents right; -1 respresents left
+        self.fleet_direction = 1
+
+    def increase_speed(self):
+        """Increase speed settings"""
+        self.ship_speed *= self.speedup_scale
+        self.bullet_speed *= self.speedup_scale
+        self.alien_speed *= self.speedup_scale
 
     def _exit_fullscreen(self):
         """Exit fullscreen mode"""
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_mode((self.screen_width, self.screen_height))
 
     def _fullscreen_mode(self):
         """Fullscreen mode"""
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)

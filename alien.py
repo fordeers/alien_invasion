@@ -1,7 +1,7 @@
 import pygame
 from pygame.sprite import Sprite
 
-class Aliens(Sprite):
+class Alien(Sprite):
     """A class to represent a single alien in the fleet."""
 
     def __init__(self, ai_game):
@@ -32,9 +32,5 @@ class Aliens(Sprite):
         self.x += (self.settings.alien_speed * self.settings.fleet_direction) * dt
         self.rect.x = self.x
 
-        
-
-
-    
 
 
