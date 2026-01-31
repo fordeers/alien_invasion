@@ -18,8 +18,8 @@ class Button:
         self._prep_msg(msg)
 
         # Build the buttons rect based on the given message(msg)
-        self.rect = pygame.Rect(0, 0, self.msg_image_rect.width, self.msg_image_rect.height)
         self.rect = self.msg_image_rect
+        # self.rect = pygame.Rect(0, 0, self.msg_image_rect.width, self.msg_image_rect.height)
     
     def _prep_msg(self, msg):
         """Turn msg into a rendered image and center text on the button."""

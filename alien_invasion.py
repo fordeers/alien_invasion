@@ -12,6 +12,7 @@ from star import Star
 from spacedrop import SpaceDrop
 from game_stats import GameStats
 from button import Button
+from scoreboard import Scoreboard
 
 
 class AlienInvasion:
@@ -32,6 +33,7 @@ class AlienInvasion:
         pygame.display.set_caption("AlienInvasion")
 
         self.stats = GameStats(self)
+        self.sb = Scoreboard(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.rbullets = pygame.sprite.Group()
@@ -103,6 +105,8 @@ class AlienInvasion:
 
         if not self.game_active and self.remove_playbutton and not self.remove_levelbuttons:
             self._draw_level_buttons()
+        
+        self.sb.show_score()
     
         # Make a game instance, run the game.
         pygame.display.flip()
@@ -161,6 +165,10 @@ class AlienInvasion:
             self._quit_game()
         elif event.key == pygame.K_p:
             self._p_for_play()
+        elif event.key ==pygame.K_r:
+            if self.speed_increase:
+                self.speed_increase = False
+                self._reset_game()
         elif event.key == pygame.K_d:
             if not self.double_bullets:
                 self.double_bullets = True
@@ -453,7 +461,9 @@ class AlienInvasion:
         self.trbullets.update(dt)
         self.tlbullets.update(dt)
         self._bullet_boundary_delete()
-        self._bullet_group_collision_delete()
+        if self._bullet_group_collision_delete():
+            self.stats.score += 1 
+            self.sb.prep_score()
 
     def _empty_all_bullets(self):
         """Empties all bullet sprites"""
@@ -483,11 +493,16 @@ class AlienInvasion:
     
     def _bullet_group_collision_delete(self):
         """Handles deletition in collision with other sprite groups"""
-        pygame.sprite.groupcollide(self.aliens, self.bullets, True, True) 
-        pygame.sprite.groupcollide(self.aliens, self.rbullets, True, True) 
-        pygame.sprite.groupcollide(self.aliens, self.lbullets, True, True) 
-        pygame.sprite.groupcollide(self.aliens, self.trbullets, True, True) 
-        pygame.sprite.groupcollide(self.aliens, self.tlbullets, True, True) 
+        if pygame.sprite.groupcollide(self.aliens, self.bullets, True, True):
+            return True
+        if pygame.sprite.groupcollide(self.aliens, self.rbullets, True, True):
+            return True
+        if pygame.sprite.groupcollide(self.aliens, self.lbullets, True, True): 
+            return True
+        if pygame.sprite.groupcollide(self.aliens, self.trbullets, True, True): 
+            return True
+        if pygame.sprite.groupcollide(self.aliens, self.tlbullets, True, True): 
+            return True
 
 
 # Main game loop's instance and calling
