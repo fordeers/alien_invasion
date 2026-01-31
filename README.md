@@ -8,6 +8,8 @@ D - For upfront triple bullets
 
 S - For side bullets 
 
+R - To reset stats and restart from level 1
+
 To play, press "Play" button or press "P" on keyboard
 
 F - Fulscreen game / Exit Fullscreen
