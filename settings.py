@@ -27,11 +27,11 @@ class Settings:
         self.bullet_height = 15
         self.side_bullet_width = 15
         self.side_bullet_height = 3
-        self.bullet_colour = (255, 255, 0)
+        self.bullet_colour = (13, 255, 0)
         self.bullets_allowed = 5
 
         # Delta Time FPS
-        self.fps = 75
+        self.fps = 80
 
         # How quickly the game speeds up
         self.speedup_scale = 1.3

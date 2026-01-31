@@ -13,6 +13,7 @@ from spacedrop import SpaceDrop
 from game_stats import GameStats
 from button import Button
 from scoreboard import Scoreboard
+from earth import Earth
 
 
 class AlienInvasion:
@@ -34,6 +35,7 @@ class AlienInvasion:
 
         self.stats = GameStats(self)
         self.sb = Scoreboard(self)
+        self.earth = Earth(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.rbullets = pygame.sprite.Group()
@@ -83,6 +85,7 @@ class AlienInvasion:
                 self._update_aliens(self.dt)
                 self.stars.update(self.dt)
                 self._update_space_drops(self.dt)
+                self.earth.update(self.dt)
                 # _keybased_spacedrops()
             
             if not self.game_active:
@@ -95,6 +98,7 @@ class AlienInvasion:
         # Redraw colours & assets on the screen during each pass through the loop.
         self.screen.fill(self.settings.bg_colour)
         self.stars.draw(self.screen)
+        self.earth.blitme()
         self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
@@ -165,10 +169,13 @@ class AlienInvasion:
             self._quit_game()
         elif event.key == pygame.K_p:
             self._p_for_play()
-        elif event.key ==pygame.K_r:
+        elif event.key ==pygame.K_r: # Reset button
             if self.speed_increase:
                 self.speed_increase = False
+                self.stats.reset_stats()
+                self.sb.prep_score()
                 self._reset_game()
+                self.settings.initialize_dynamic_settings()
         elif event.key == pygame.K_d:
             if not self.double_bullets:
                 self.double_bullets = True
@@ -214,12 +221,14 @@ class AlienInvasion:
         elif self.level_button1.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
             self._reset_game()
             self.stats.reset_stats()
+            self.sb.prep_score()
             self.game_active = True
             print('TEST1')
             
         elif self.level_button2.rect.collidepoint(mouse_pos) and not self.game_active:
             self._reset_game()
             self.stats.reset_stats()
+            self.sb.prep_score()
             self.game_active = True
             print('TEST2')
             self.settings.increase_speed()
@@ -227,6 +236,7 @@ class AlienInvasion:
         elif self.level_button3.rect.collidepoint(mouse_pos) and not self.game_active:
             self._reset_game()
             self.stats.reset_stats()
+            self.sb.prep_score()
             self.game_active = True
             print('TEST3')
             self.settings.increase_speed()
@@ -235,6 +245,7 @@ class AlienInvasion:
         elif self.level_button4.rect.collidepoint(mouse_pos) and not self.game_active:
             self._reset_game()
             self.stats.reset_stats()
+            self.sb.prep_score()
             self.game_active = True
             print('TEST4')
             self.settings.increase_speed()

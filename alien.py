@@ -11,6 +11,8 @@ class Alien(Sprite):
         self.settings = ai_game.settings
 
         # Load the alien image and set its rect attribute.
+        # self.image = pygame.image.load('assets/alien_2.png').convert_alpha()
+        # self.image = pygame.transform.scale(self.image, (34, 34))
         self.image = pygame.image.load('assets/enemy.png')
         self.rect = self.image.get_rect()
 
