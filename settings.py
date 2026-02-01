@@ -3,7 +3,7 @@ import pygame
 class Settings:
     """A class to store all settings for Alien Invasion."""
 
-    def __init__(self):
+    def __init__(self, ):
         """Initialize the game's settings."""
         # Screen settings
         self.screen_width = 1200
@@ -35,6 +35,11 @@ class Settings:
 
         # How quickly the game speeds up
         self.speedup_scale = 1.3
+
+        # Scoring settings
+        self.alien_points = 1
+        self.score = 0
+        self.score_scale = 1.5
         
         self.initialize_dynamic_settings()
     
@@ -46,12 +51,17 @@ class Settings:
 
         # fleet_direction of 1 represents right; -1 respresents left
         self.fleet_direction = 1
+        
+        self.alien_points = 1
+        self.score = 0
 
     def increase_speed(self):
         """Increase speed settings"""
         self.ship_speed *= self.speedup_scale
         self.bullet_speed *= self.speedup_scale
         self.alien_speed *= self.speedup_scale
+        self.score += 1
+        self.alien_points = self.score * self.score_scale
 
     def _exit_fullscreen(self):
         """Exit fullscreen mode"""

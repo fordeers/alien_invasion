@@ -50,9 +50,7 @@ class AlienInvasion:
         self.level_button2 = Button(self, "2")
         self.level_button3 = Button(self, "3")
         self.level_button4 = Button(self, "4")
-        self.level_button5 = Button(self, "5")
 
-        # self._create_fleet()
         self._create_stars()
         #self._create_drops()
 
@@ -99,10 +97,12 @@ class AlienInvasion:
         self.screen.fill(self.settings.bg_colour)
         self.stars.draw(self.screen)
         self.earth.blitme()
+        self.sb.show_score()
         self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
         self.ship.blitme()
+        print(self.settings.alien_points)
 
         if not self.game_active and not self.remove_playbutton:
             self.play_button.draw_button()
@@ -110,7 +110,6 @@ class AlienInvasion:
         if not self.game_active and self.remove_playbutton and not self.remove_levelbuttons:
             self._draw_level_buttons()
         
-        self.sb.show_score()
     
         # Make a game instance, run the game.
         pygame.display.flip()
@@ -195,7 +194,19 @@ class AlienInvasion:
                 self.settings._exit_fullscreen()
         elif event.key == pygame.K_ESCAPE:
             pass
-            
+        elif event.key == pygame.K_1:
+            if not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+                self.level_one_stuff()
+        elif event.key == pygame.K_2:
+            if not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+                self.level_two_stuff()
+        elif event.key == pygame.K_3:
+            if not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+                self.level_three_stuff()
+        elif event.key == pygame.K_4:
+            if not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+                self.level_four_stuff()
+    
     def _check_keyup_events(self, event):
         """Respond to key releases."""
         if event.key == pygame.K_RIGHT:
@@ -212,57 +223,67 @@ class AlienInvasion:
     
     def _check_play_and_level_buttons(self, mouse_pos):
         """Start a new game when the player clicks Play."""
-        print('test')
+        # print('test')
         if self.play_button.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_playbutton:
             self.remove_playbutton = True
             self.remove_levelbuttons = False
-            print('testplay')
+            # print('testplay')
         
         elif self.level_button1.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
-            self._reset_game()
-            self.stats.reset_stats()
-            self.sb.prep_score()
-            self.game_active = True
-            print('TEST1')
+            self.level_one_stuff()
             
-        elif self.level_button2.rect.collidepoint(mouse_pos) and not self.game_active:
-            self._reset_game()
-            self.stats.reset_stats()
-            self.sb.prep_score()
-            self.game_active = True
-            print('TEST2')
-            self.settings.increase_speed()
+        elif self.level_button2.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+            self.level_two_stuff()
             
-        elif self.level_button3.rect.collidepoint(mouse_pos) and not self.game_active:
-            self._reset_game()
-            self.stats.reset_stats()
-            self.sb.prep_score()
-            self.game_active = True
-            print('TEST3')
-            self.settings.increase_speed()
-            self.settings.increase_speed()
+        elif self.level_button3.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+            self.level_three_stuff()
 
-        elif self.level_button4.rect.collidepoint(mouse_pos) and not self.game_active:
-            self._reset_game()
-            self.stats.reset_stats()
-            self.sb.prep_score()
-            self.game_active = True
-            print('TEST4')
-            self.settings.increase_speed()
-            self.settings.increase_speed()
-            self.settings.increase_speed()
-
-        # elif self.level_button5.rect.collidepoint(mouse_pos) and not self.game_active:
-        #     self._reset_game()
-        #     self.stats.reset_stats()
-        #     self.game_active = False
-        #     print('TEST7')
+        elif self.level_button4.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
+            self.level_four_stuff()
 
     def _p_for_play(self):
         """Press "P" to play"""
         if not self.game_active and not self.remove_playbutton:
             self.remove_playbutton = True
             self.remove_levelbuttons = False
+
+    def level_one_stuff(self):
+        """Level 1 stuff"""
+        self._reset_game()
+        self.stats.reset_stats()
+        self.sb.prep_score()
+        self.game_active = True
+        # print('TEST1')
+    
+    def level_two_stuff(self):
+        """Level 2stuff"""
+        self._reset_game()
+        self.stats.reset_stats()
+        self.sb.prep_score()
+        self.game_active = True
+        # print('TEST2')
+        self.settings.increase_speed()
+    
+    def level_three_stuff(self):
+        """Level 3 stuff"""
+        self._reset_game()
+        self.stats.reset_stats()
+        self.sb.prep_score()
+        self.game_active = True
+        # print('TEST3')
+        self.settings.increase_speed()
+        self.settings.increase_speed()
+    
+    def level_four_stuff(self):
+        """Level 4 stuff"""
+        self._reset_game()
+        self.stats.reset_stats()
+        self.sb.prep_score()
+        self.game_active = True
+        # print('TEST4')
+        self.settings.increase_speed()
+        self.settings.increase_speed()
+        self.settings.increase_speed()
 
     ############################## Ship/Player ##############################
 
@@ -350,7 +371,7 @@ class AlienInvasion:
         self._ship_to_alien_collision()
         self.aliens.update(dt)
         # print(len(self.aliens))
-        print(self.settings.alien_speed)
+        # print(self.settings.alien_speed)
     
     def _create_fleet(self):
         """Create the fleet of aliens."""
@@ -473,7 +494,7 @@ class AlienInvasion:
         self.tlbullets.update(dt)
         self._bullet_boundary_delete()
         if self._bullet_group_collision_delete():
-            self.stats.score += 1 
+            self.stats.score += self.settings.alien_points
             self.sb.prep_score()
 
     def _empty_all_bullets(self):
