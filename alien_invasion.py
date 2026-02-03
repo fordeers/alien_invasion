@@ -98,10 +98,13 @@ class AlienInvasion:
         self.stars.draw(self.screen)
         self.earth.blitme()
         self.sb.show_score()
+       
         self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
         self.ship.blitme()
+        # print(len(self.aliens))
+        # print(self.settings.alien_speed)
         print(self.settings.alien_points)
 
         if not self.game_active and not self.remove_playbutton:
@@ -169,12 +172,7 @@ class AlienInvasion:
         elif event.key == pygame.K_p:
             self._p_for_play()
         elif event.key ==pygame.K_r: # Reset button
-            if self.speed_increase:
-                self.speed_increase = False
-                self.stats.reset_stats()
-                self.sb.prep_score()
-                self._reset_game()
-                self.settings.initialize_dynamic_settings()
+            self._master_game_reset()
         elif event.key == pygame.K_d:
             if not self.double_bullets:
                 self.double_bullets = True
@@ -193,7 +191,10 @@ class AlienInvasion:
                 self.fullscreen = False
                 self.settings._exit_fullscreen()
         elif event.key == pygame.K_ESCAPE:
-            pass
+            if self.game_active:
+                self.game_active = False
+            elif not self.game_active:
+                self.game_active = True
         elif event.key == pygame.K_1:
             if not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
                 self.level_one_stuff()
@@ -249,42 +250,52 @@ class AlienInvasion:
 
     def level_one_stuff(self):
         """Level 1 stuff"""
-        self._reset_game()
-        self.stats.reset_stats()
-        self.sb.prep_score()
+        self._master_game_reset()
         self.game_active = True
         # print('TEST1')
     
     def level_two_stuff(self):
         """Level 2stuff"""
-        self._reset_game()
-        self.stats.reset_stats()
-        self.sb.prep_score()
+        self._master_game_reset()
+        self.settings.increase_speed()
+        
         self.game_active = True
         # print('TEST2')
-        self.settings.increase_speed()
     
     def level_three_stuff(self):
         """Level 3 stuff"""
-        self._reset_game()
-        self.stats.reset_stats()
-        self.sb.prep_score()
+        self._master_game_reset()
+        self.settings.increase_speed()
+        self.settings.increase_speed()
+        
         self.game_active = True
         # print('TEST3')
-        self.settings.increase_speed()
-        self.settings.increase_speed()
     
     def level_four_stuff(self):
         """Level 4 stuff"""
-        self._reset_game()
-        self.stats.reset_stats()
-        self.sb.prep_score()
+        self._master_game_reset()
+        self.settings.increase_speed()
+        self.settings.increase_speed()
+        self.settings.increase_speed()
+        
         self.game_active = True
         # print('TEST4')
-        self.settings.increase_speed()
-        self.settings.increase_speed()
-        self.settings.increase_speed()
 
+    def _speed_and_difficulty_increase(self):
+        """Manages conditions for speed and difficulty triggers"""
+        if not self.aliens and self.speed_increase:
+            self.settings.increase_speed()
+    
+    def _master_game_reset(self):
+        """Resets game sprites and stats."""
+        self.speed_increase = False
+        self._reset_game_sprites()
+        self.settings.initialize_dynamic_settings()
+        self.sb.check_high_score()
+        self.stats.reset_stats()
+        self.sb.prep_score()
+
+    
     ############################## Ship/Player ##############################
 
     def _ship_hit(self):
@@ -293,13 +304,13 @@ class AlienInvasion:
             # Decrement ships_left
             self.stats.ships_left -= 1
             print(f"{self.stats.ships_left} lives left!")
-            self._reset_game()
+            self._reset_game_sprites()
         
         else:
             self.game_active = False
             self.settings.initialize_dynamic_settings()
 
-    def _reset_game(self):
+    def _reset_game_sprites(self):
         """Drecrements player ship lives and reset screen"""
         self.remove_playbutton = False
         self.remove_levelbuttons = True
@@ -364,14 +375,11 @@ class AlienInvasion:
     def _update_aliens(self, dt):
         """Update the positions of all aliens in the fleet."""
         self._delete_aliens_screen()
-        if not self.aliens and self.speed_increase:
-            self.settings.increase_speed()
+        self._speed_and_difficulty_increase()
         self._create_fleet()
         self._check_fleet_edges(dt)
         self._ship_to_alien_collision()
         self.aliens.update(dt)
-        # print(len(self.aliens))
-        # print(self.settings.alien_speed)
     
     def _create_fleet(self):
         """Create the fleet of aliens."""
@@ -408,6 +416,11 @@ class AlienInvasion:
             if aliens.rect.bottom > self.screen_get_rect.bottom:
                 self.speed_increase = False
                 self.aliens.remove(aliens)
+
+                if not self.aliens:
+                    self.stats.ships_left -= 1
+                    print(f"{self.stats.ships_left} lives left!")
+
             else:
                 self.speed_increase = True
                
@@ -495,6 +508,7 @@ class AlienInvasion:
         self._bullet_boundary_delete()
         if self._bullet_group_collision_delete():
             self.stats.score += self.settings.alien_points
+            self.sb.check_high_score()
             self.sb.prep_score()
 
     def _empty_all_bullets(self):

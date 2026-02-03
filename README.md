@@ -18,6 +18,8 @@ F - Fulscreen game / Exit Fullscreen
 
 Q - to quit game
 
+Escape - to pause or pick a new starting level
+
 Player start with 3 lives.
 Points increase for each Alien ship hit as you progress every round.
 
