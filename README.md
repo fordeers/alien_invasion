@@ -23,13 +23,15 @@ Escape - to pause or pick a new starting level
 Player start with 3 lives.
 Points increase for each Alien ship hit as you progress every round.
 
-Level 1 - base speed
+Level 0 - game/base speed 
 
-Level 2 - base speed x2
+Level 1 - game/base speed x2
 
-Level 3 - base speed x3
+Level 2 - game/base speed x3
 
-Level 4 - base speed x4
+Level 3 - game/base speed x4
+
+Level 4 - game/base speed x5
 
 and so on and so forth...
 

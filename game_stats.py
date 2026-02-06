@@ -7,6 +7,7 @@ class GameStats:
         """Initizalize statistics"""
         self.settings = ai_game.settings
         self.score = self.settings.alien_points
+        # self.level = self.settings.level
         self.reset_stats()
 
         # High score should never be reset
@@ -16,3 +17,5 @@ class GameStats:
         """Initialize statistics that can change during the game."""
         self.ships_left = self.settings.ship_limit
         self.score = 0
+        self.level = 0
+        
