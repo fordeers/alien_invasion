@@ -12,8 +12,9 @@ from star import Star
 from spacedrop import SpaceDrop
 from game_stats import GameStats
 from button import Button
-from scoreboard import Scoreboard
+from scoreboard_and_levels import ScoreboardAndLevels
 from earth import Earth
+from player_lives import PlayerLives
 
 
 class AlienInvasion:
@@ -34,9 +35,10 @@ class AlienInvasion:
         pygame.display.set_caption("AlienInvasion")
 
         self.stats = GameStats(self)
-        self.sb = Scoreboard(self)
+        self.sb = ScoreboardAndLevels(self)
         self.earth = Earth(self)
         self.ship = Ship(self)
+        self.hearts = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
         self.rbullets = pygame.sprite.Group()
         self.lbullets = pygame.sprite.Group()
@@ -63,7 +65,8 @@ class AlienInvasion:
         # Start Alien Invasion in an inactive state.
         self.game_active = False
 
-        self.speed_increase = False
+        self.speed_increase = False # Checks true if aliens dont die from border delete 
+                                    # and ship to alien collision delete
 
         self.remove_playbutton = False
         self.remove_levelbuttons = True
@@ -85,6 +88,7 @@ class AlienInvasion:
                 self.stars.update(self.dt)
                 self._update_space_drops(self.dt)
                 self.earth.update(self.dt)
+                self._create_hearts()
                 # _keybased_spacedrops()
             
             if not self.game_active:
@@ -99,7 +103,7 @@ class AlienInvasion:
         self.stars.draw(self.screen)
         self.earth.blitme()
         self.sb.show_score()
-       
+        self.hearts.draw(self.screen)
         self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
@@ -107,7 +111,10 @@ class AlienInvasion:
         # print(len(self.aliens))
         # print(self.settings.alien_speed)
         # print(self.settings.alien_points)
-        print(self.stats.level)
+        # print(self.stats.level)
+        # print(len(self.hearts))
+        print(len(self.hearts))
+
 
         if not self.game_active and not self.remove_playbutton:
             self.play_button.draw_button()
@@ -261,7 +268,8 @@ class AlienInvasion:
     def level_zero_stuff(self):
         """Level 0 stuff"""
         self._master_game_reset()
-        self.sb.Level_display()
+        self.sb.level_display()
+        self.sb.check_highest_level()
         self.game_active = True
         # print('TEST0')
 
@@ -305,10 +313,12 @@ class AlienInvasion:
         """Updates current level based on speed increases"""
         self.settings.increase_speed()
         self.stats.level += 1
-        self.sb.Level_display()
+        self.sb.level_display()
+        self.sb.check_highest_level()
 
     def _speed_and_difficulty_increase(self):
-        """Manages conditions for speed and difficulty triggers"""
+        """Checks & Manages conditions for speed and difficulty triggers
+        throughout the game thats player influenced."""
         if not self.aliens and self.speed_increase:
             self.level_update_and_speed_increase()
     
@@ -317,6 +327,7 @@ class AlienInvasion:
         self.speed_increase = False
         self._reset_game_sprites()
         self.settings.initialize_dynamic_settings()
+        self.sb.check_highest_level()
         self.sb.check_high_score()
         self.stats.reset_stats()
         self.sb.prep_score()
@@ -324,11 +335,53 @@ class AlienInvasion:
     
     ############################## Ship/Player ##############################
 
+    def _ships_and_hearts_link(self):
+        """This links ships left and hearts by updating 
+        based on current game status"""
+        self.stats.ships_left -= 1
+        self._delete_hearts()
+
+    def _create_hearts(self):
+        """Create and displays all the hearts""" 
+        # This code is inspired from _create_fleet()
+        # Had a hard time fully understanding and modifying this code
+        # But in the end i got to work by altering the marked lines below *
+        # And putting them in their respective spots
+        if len(self.hearts) == 0:
+            heart = PlayerLives(self)
+            heart_width, heart_height = heart.rect.size
+
+            current_x, current_y = heart_width, heart_height
+            current_y = self.sb.high_score_rect.y # *this
+            while current_y < (self.sb.highest_level_rect.y):
+                current_x= self.screen_get_rect.left + 18 # *this
+                while current_x < (self.sb.high_score_rect.x - 2 * heart_width):
+                    self._create_heart(current_x, current_y)
+                    current_x += 1 * heart_width
+                
+                # Finished a row: reset x value, and increment y value.
+                current_x = heart_width
+                current_y += 1 * heart_height
+
+    def _create_heart(self, current_x, current_y):
+        """Create an heart and place it in a row"""
+        if len(self.hearts) < self.stats.ships_left:
+            new_heart = PlayerLives(self)
+            new_heart.x = current_x
+            new_heart.rect.x = current_x
+            new_heart.rect.y = current_y
+            self.hearts.add(new_heart)
+        
+    def _delete_hearts(self):
+        """Delete hearts based on conditions"""
+        for heart in self.hearts.sprites():
+            self.hearts.remove(heart)
+
     def _ship_hit(self):
         """Respond to the ship being hit by an Alien"""
         if self.stats.ships_left > 0:    
             # Decrement ships_left
-            self.stats.ships_left -= 1
+            self._ships_and_hearts_link()
             print(f"{self.stats.ships_left} lives left!")
             self._reset_game_sprites()
         
@@ -444,7 +497,7 @@ class AlienInvasion:
                 self.aliens.remove(aliens)
 
                 if not self.aliens:
-                    self.stats.ships_left -= 1
+                    self._ships_and_hearts_link()
                     print(f"{self.stats.ships_left} lives left!")
 
             else:
