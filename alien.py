@@ -1,6 +1,9 @@
 import pygame
 from pygame.sprite import Sprite
 
+
+from get_path import get_path
+
 class Alien(Sprite):
     """A class to represent a single alien in the fleet."""
 
@@ -13,7 +16,7 @@ class Alien(Sprite):
         # Load the alien image and set its rect attribute.
         # self.image = pygame.image.load('assets/alien_2.png').convert_alpha()
         # self.image = pygame.transform.scale(self.image, (34, 34))
-        self.image = pygame.image.load('assets/enemy.png')
+        self.image = pygame.image.load(get_path('assets/enemy.png'))
         self.rect = self.image.get_rect()
 
         # Start each new alien near the top left of the screen.

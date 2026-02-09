@@ -14,7 +14,7 @@ from game_stats import GameStats
 from button import Button
 from scoreboard_and_levels import ScoreboardAndLevels
 from earth import Earth
-from player_lives import PlayerLives
+from player_lives import PlayerLives 
 
 
 class AlienInvasion:

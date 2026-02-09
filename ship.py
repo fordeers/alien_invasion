@@ -1,5 +1,8 @@
 import pygame
 
+
+from get_path import get_path
+
 class Ship:
     """A class to manage the ship"""
     
@@ -10,7 +13,7 @@ class Ship:
             self.settings = ai_game.settings
 
             # Load the ship image and get its rect.
-            self.image = pygame.image.load('assets/player_ship.png')
+            self.image = pygame.image.load(get_path('assets/player_ship.png'))
             self.rect = self.image.get_rect()
 
             # Start each new ship at the bottom centre of the screen.

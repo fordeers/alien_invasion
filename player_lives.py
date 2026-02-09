@@ -1,6 +1,9 @@
 import pygame
 from pygame.sprite import Sprite
 
+
+from get_path import get_path
+
 class PlayerLives(Sprite):
     """A class to represent a single player live"""
 
@@ -12,7 +15,7 @@ class PlayerLives(Sprite):
         self.settings = ai_game.settings
         self.sb = ai_game.sb
 
-        self.image = pygame.image.load('assets/heart.png').convert_alpha()
+        self.image = pygame.image.load(get_path('assets/heart.png')).convert_alpha()
         self.image = pygame.transform.scale(self.image, (36, 36))
         self.rect = self.image.get_rect()
 

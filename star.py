@@ -3,6 +3,8 @@ from random import randint, uniform
 import pygame
 from pygame.sprite import Sprite
 
+from get_path import get_path
+
 class Star(Sprite):
     """Space star asset"""
 
@@ -10,7 +12,7 @@ class Star(Sprite):
         """Star stuff"""
         super().__init__()
 
-        self.image = pygame.image.load('assets/stars1.png')
+        self.image = pygame.image.load(get_path('assets/stars1.png'))
         self.rect = self.image.get_rect()
 
         self.settings = ai_game.settings
