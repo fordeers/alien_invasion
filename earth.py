@@ -13,7 +13,7 @@ class Earth:
         
         self.frames = []
         # Load all 60 frames into memory once
-        for i in range(119):
+        for i in range(118):
             img = pygame.image.load(get_path(f'assets/earth/{i}.png')).convert_alpha()
             self.frames.append(img)
 
