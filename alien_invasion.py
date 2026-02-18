@@ -397,22 +397,22 @@ class AlienInvasion:
         # elif self.level_button0.rect.collidepoint(mouse_pos) and not self.game_active and not self.remove_levelbuttons and self.remove_playbutton:
         #     self.level_zero_stuff()        REFERENCE EXMAPLE OF THE OLD CODE BEFORE MODIFIED.
         
-        elif self.level_button0.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_main_menu_buttons:
+        elif self.level_button0.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_playbutton and self.remove_main_menu_buttons:
             self.level_zero_stuff()
         
-        elif self.level_button1.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_main_menu_buttons:
+        elif self.level_button1.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_playbutton and self.remove_main_menu_buttons:
             self.level_one_stuff()
             
-        elif self.level_button2.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_main_menu_buttons:
+        elif self.level_button2.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_playbutton and self.remove_main_menu_buttons:
             self.level_two_stuff()
             
-        elif self.level_button3.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_main_menu_buttons:
+        elif self.level_button3.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_playbutton and self.remove_main_menu_buttons:
             self.level_three_stuff()
 
-        elif self.level_button4.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_main_menu_buttons:
+        elif self.level_button4.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_playbutton and self.remove_main_menu_buttons:
             self.level_four_stuff()
         
-        elif self.level_button5.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_main_menu_buttons:
+        elif self.level_button5.rect.collidepoint(mouse_pos) and not self.game_active and self.remove_playbutton and self.remove_main_menu_buttons:
             self.level_five_stuff()
        
     def level_zero_stuff(self):
