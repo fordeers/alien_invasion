@@ -1,3 +1,6 @@
+from pathlib import Path
+import json
+
 import pygame.font
 
 class ScoreboardAndLevels:
@@ -14,9 +17,13 @@ class ScoreboardAndLevels:
         self.text_color = (30, 30, 30)
         self.font = pygame.font.SysFont(None, 48)
 
+
+        self.button = ai_game.testbutton
+
         # Prepare the initial score image.
         self.prep_score()
         self.prep_high_score()
+        self.display_highest_score()
         
         
         self.level_display()
@@ -78,6 +85,27 @@ class ScoreboardAndLevels:
         if self.stats.score > self.stats.high_score:
             self.stats.high_score = self.stats.score
             self.prep_high_score()
+    
+    def record_highest_score(self):
+        """Records the highest score"""
+        self.path = Path('highest_score.md')
+        self.recorded_top_hs = json.loads(self.path.read_text())
+        
+        if self.stats.high_score > self.recorded_top_hs:
+            self.recorded_top_hs = self.stats.high_score
+
+            self.path.write_text(json.dumps(self.recorded_top_hs))
+
+    def display_highest_score(self):
+        """Display highest score of all time."""
+        self.path = Path('highest_score.md')
+        self.recorded_top_hs = json.loads(self.path.read_text())
+        self.recorded_top_hs_str = str(self.recorded_top_hs)
+        self.top_hs_score_image = self.font.render(self.recorded_top_hs_str, True, self.button.text_colour,
+                        self.settings.bg_colour)
+        
+        self.top_hs_score_rect = self.top_hs_score_image.get_rect()
+        self.top_hs_score_rect.center = self.screen_rect.center
 
     def show_score(self):
         """Draw score to the screen"""
@@ -85,6 +113,10 @@ class ScoreboardAndLevels:
         self.screen.blit(self.high_score_image, self.high_score_rect)
         self.screen.blit(self.level_image, self.level_rect)
         self.screen.blit(self.highest_level_image, self.highest_level_rect)
+        
+    def show_top_score(self):
+        "Draws the top score of all time"
+        self.screen.blit(self.top_hs_score_image, self.top_hs_score_rect)
 
     
 

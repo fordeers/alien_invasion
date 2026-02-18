@@ -17,6 +17,7 @@ class Settings:
         # Alien settings
         self.alien_speed = 120.0
         self.fleet_drop_speed = 2000
+        self.alien_fleet_size = 34
 
         # Fleet direction of 1 represents right; -1 represents left.
         self.fleet_direction = 1
@@ -29,6 +30,8 @@ class Settings:
         self.side_bullet_height = 3
         self.bullet_colour = (13, 255, 0)
         self.bullets_allowed = 5
+        self.enemy_bullet_colour = (230, 27, 35)
+        self.enemy_bullets_allowed = 2
 
         # Delta Time FPS
         self.fps = 80
@@ -68,4 +71,4 @@ class Settings:
 
     def _fullscreen_mode(self):
         """Fullscreen mode"""
-        pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN, vsync=80)
