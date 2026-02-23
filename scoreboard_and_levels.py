@@ -3,6 +3,8 @@ import json
 
 import pygame.font
 
+from get_path import get_save_path
+
 class ScoreboardAndLevels:
     """A class to report scoring information."""
 
@@ -88,7 +90,7 @@ class ScoreboardAndLevels:
     
     def record_highest_score(self):
         """Records the highest score"""
-        self.path = Path('highest_score.md')
+        self.path = Path(get_save_path('highest_score.md'))
         self.recorded_top_hs = json.loads(self.path.read_text())
         
         if self.stats.high_score > self.recorded_top_hs:
@@ -98,7 +100,7 @@ class ScoreboardAndLevels:
 
     def display_highest_score(self):
         """Display highest score of all time."""
-        self.path = Path('highest_score.md')
+        self.path = Path(get_save_path('highest_score.md'))
         self.recorded_top_hs = json.loads(self.path.read_text())
         self.recorded_top_hs_str = str(self.recorded_top_hs)
         self.top_hs_score_image = self.font.render(self.recorded_top_hs_str, True, self.button.text_colour,
