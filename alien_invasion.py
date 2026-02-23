@@ -1,6 +1,6 @@
 import sys
 from time import sleep
-from random import choice, random, uniform
+from random import choice, random, uniform, randint
 
 import pygame
 
@@ -14,7 +14,8 @@ from game_stats import GameStats
 from button import Button
 from scoreboard_and_levels import ScoreboardAndLevels
 from earth import Earth
-from player_lives import PlayerLives 
+from hearts import Hearts 
+from power_ups import *
 
 
 class AlienInvasion:
@@ -34,12 +35,18 @@ class AlienInvasion:
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("AlienInvasion")
 
+        # Regular class instances
         self.stats = GameStats(self)
         self.testbutton = Button(self, 'testbutton')
         self.sb = ScoreboardAndLevels(self)
         self.earth = Earth(self)
         self.ship = Ship(self)
+        self.shieldorb = ShieldOrb(self)
+        self.playershield = PlayerShield(self)
+
+        # Sprite groups
         self.hearts = pygame.sprite.Group()
+        self.shieldbars = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
         self.rbullets = pygame.sprite.Group()
         self.lbullets = pygame.sprite.Group()
@@ -115,6 +122,7 @@ class AlienInvasion:
                 self._update_space_drops(self.dt)
                 self.earth.update(self.dt)
                 self._create_hearts()
+                self._shield_related_updates(self.dt)
                 # _keybased_spacedrops()
             
             if not self.game_active:
@@ -130,16 +138,22 @@ class AlienInvasion:
         self.earth.blitme()
         self.sb.show_score()
         self.hearts.draw(self.screen)
+        self.shieldbars.draw(self.screen)
         self._draw_bullets()
         self.aliens.draw(self.screen)
         self._space_drops_draw()
+        self.shieldorb.blitme()
         self.ship.blitme()
+        self.playershield.blitme()
         # print(len(self.aliens))
         # print(self.settings.alien_speed)
          # print(self.settings.alien_points)
         # print(self.stats.level)
         # print(len(self.hearts))
+        print(len(self.shieldbars))
         # print(len(self.alien_bullets))
+        # print(self.shield.timer_appear_disappear)
+        # print(self.shield.timer_fading)
 
 
         if not self.game_active and not self.remove_playbutton:
@@ -509,10 +523,91 @@ class AlienInvasion:
 
     #############################################################################    
     #############################################################################
-    ############################## Ship/Player ##################################
+    ############################## Shields ######################################
     #############################################################################
     #############################################################################
 
+    # Player shield related stuff 
+    def _shield_related_updates(self, dt):
+        self.shieldorb.update(dt)
+        self.playershield.update()
+        self._player_shield_orb_collision()
+        if self._shield_bullet_collision():
+            self.stats.shield_hits_limit -= 1
+            self._delete_shieldbars()
+        if self._shield_alien_collision():
+            self.stats.shield_hits_limit -= 1
+            self._delete_shieldbars()
+        if self._player_shield_orb_collision() and not self.playershield.shieldup:
+            self.playershield.shieldup = True
+            self.shieldorb.playergotshield = True
+            self.shieldorb.timer_appear_disappear = self.shieldorb.time_appear
+            self._create_shieldbars()
+    
+    def _shield_bullet_collision(self):
+        """alien bullets and player shield sprite collision"""
+        if self.playershield.shieldup:
+            if pygame.sprite.spritecollide(self.playershield, self.alien_bullets, True): 
+                return True
+            
+    def _shield_alien_collision(self):
+        """alien sprite group and player shield sprite collision"""
+        if self.playershield.shieldup:
+            if pygame.sprite.spritecollide(self.playershield, self.aliens, True):    
+                return True
+
+    def _player_shield_orb_collision(self):
+        """checks enemy bullets hitting player ship"""
+        if not self.playershield.shieldup:
+            if pygame.sprite.collide_circle(self.ship, self.shieldorb):
+                return True
+
+    def _create_shieldbars(self):
+        """Create and displays all the hearts""" 
+        # This code is inspired from _create_fleet()
+        # Had a hard time fully understanding and modifying this code
+        # But in the end i got it to work by altering the marked lines below *
+        # And putting them in their respective spots
+        if len(self.shieldbars) == 0:
+            shieldbar = ShieldBar(self)
+            shieldbar_width, shieldbar_height = shieldbar.rect.size
+
+            current_x, current_y = shieldbar_width, shieldbar_height
+            current_y = self.sb.highest_level_rect.y # *this
+            while current_y < (self.sb.highest_level_rect.y * 2):
+                current_x = self.screen_get_rect.left + 18 # *this
+                while current_x < (self.sb.highest_level_rect.x - 2 * shieldbar_width):
+                    self._create_shieldbar(current_x, current_y)
+                    current_x += 1 * shieldbar_width
+                
+                # Finished a row: reset x value, and increment y value.
+                current_x = shieldbar_width
+                current_y += 1 * shieldbar_height
+
+    def _create_shieldbar(self, current_x, current_y):
+        """Create an shieldbar and place it in a row"""
+        if len(self.shieldbars) < self.stats.shield_hits_limit:
+            new_shieldbar = ShieldBar(self)
+            new_shieldbar.x = current_x
+            new_shieldbar.rect.x = current_x
+            new_shieldbar.rect.y = current_y + 6
+            self.shieldbars.add(new_shieldbar)
+        
+    def _delete_shieldbars(self):
+        """Delete shieldbars based on conditions"""
+        bars = self.shieldbars.sprites()
+
+        if self.shieldbars:
+            self.shieldbars.remove(bars[-1])
+    
+
+    #############################################################################    
+    #############################################################################
+    ############################## Hearts #######################################
+    #############################################################################
+    #############################################################################
+
+    # Player lives/Heart stuff
     def _ships_and_hearts_link(self):
         """This links ships left and hearts by updating 
         based on current game status"""
@@ -526,7 +621,7 @@ class AlienInvasion:
         # But in the end i got it to work by altering the marked lines below *
         # And putting them in their respective spots
         if len(self.hearts) == 0:
-            heart = PlayerLives(self)
+            heart = Hearts(self)
             heart_width, heart_height = heart.rect.size
 
             current_x, current_y = heart_width, heart_height
@@ -544,7 +639,7 @@ class AlienInvasion:
     def _create_heart(self, current_x, current_y):
         """Create an heart and place it in a row"""
         if len(self.hearts) < self.stats.ships_left:
-            new_heart = PlayerLives(self)
+            new_heart = Hearts(self)
             new_heart.x = current_x
             new_heart.rect.x = current_x
             new_heart.rect.y = current_y
@@ -552,10 +647,20 @@ class AlienInvasion:
         
     def _delete_hearts(self):
         """Delete hearts based on conditions"""
-        for heart in self.hearts.sprites():
-            self.hearts.remove(heart)
+        hearts = self.hearts.sprites()
 
-    def _ship_hit(self):
+        if self.hearts:
+            self.hearts.remove(hearts[-1])
+
+
+    #############################################################################    
+    #############################################################################
+    ############################## Ship/Player ##################################
+    #############################################################################
+    #############################################################################
+
+    # Assorted ship stuff
+    def _ship_alien_hit(self):
         """Respond to the ship being hit by an Alien"""
         if self.stats.ships_left > 0:    
             # Decrement ships_left
@@ -573,6 +678,12 @@ class AlienInvasion:
         # Get rid of any remaining bullets and aliens.
         self._empty_all_bullets()
         self.aliens.empty()
+
+        # shield stuff
+        self.playershield.shieldup = False
+        self.shieldorb.playergotshield = False
+        self.shieldorb.timer_appear_disappear = self.shieldorb.time_appear
+        self.shieldbars.empty()
 
         # Center the ship.
         self.ship.ship_centred = True
@@ -744,11 +855,12 @@ class AlienInvasion:
         
     def _ship_to_alien_collision(self):
         """Detects ship to alien collision"""
-        if pygame.sprite.spritecollideany(self.ship, self.aliens):
-            self.speed_increase = False
-            self._ship_hit()
-        else:
-            self.speed_increase = True
+        if not self.playershield.shieldup and not self.shieldorb.playergotshield:   
+            if pygame.sprite.spritecollideany(self.ship, self.aliens):
+                self.speed_increase = False
+                self._ship_alien_hit()
+            else:
+                self.speed_increase = True
             
     #############################################################################    
     #############################################################################
@@ -861,7 +973,7 @@ class AlienInvasion:
         """Manages conditions when enemy bullet hits player"""
         if self.stats.ships_left > 0 and self._ship_bullet_collision():
             self._ships_and_hearts_link()
-            self.ship.ship_hit =  True############# This is where you're currently working
+            self.ship.ship_hit =  True
         
         elif self.stats.ships_left == 0 and self._ship_bullet_collision():
             self._no_more_lives_left_pause() 
@@ -869,9 +981,7 @@ class AlienInvasion:
     def _ship_bullet_collision(self):
         """checks enemy bullets hitting player ship"""
         if pygame.sprite.spritecollide(self.ship, self.alien_bullets, True):
-            return True
-
-            
+            return True            
 
 
 # Main game loop's instance and calling

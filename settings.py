@@ -14,6 +14,9 @@ class Settings:
         self.ship_speed = 270
         self.ship_limit = 3
 
+        # PoweUps settings
+        self.shield_hits_limit = 5
+
         # Alien settings
         self.alien_speed = 120.0
         self.fleet_drop_speed = 2000
@@ -59,7 +62,7 @@ class Settings:
 
     def increase_speed(self):
         """Increase speed settings"""
-        self.ship_speed *= self.speedup_scale
+        self.ship_speed *= self.speedup_scale - 0.2
         self.bullet_speed *= self.speedup_scale
         self.alien_speed *= self.speedup_scale
         self.score_scale = 2
