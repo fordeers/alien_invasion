@@ -22,6 +22,19 @@ class ScoreboardAndLevels:
 
         self.button = ai_game.testbutton
 
+        # 1. Prepare Path
+        self.path = Path(get_save_path('highest_score.md'))
+
+        # 2. Check/Create File
+        if not self.path.exists():
+            self.path.write_text("0")
+
+        # 3. Load the data into a variable
+        try:
+            self.recorded_top_hs = int(self.path.read_text().strip())
+        except:
+            self.recorded_top_hs = 0
+
         # Prepare the initial score image.
         self.prep_score()
         self.prep_high_score()
